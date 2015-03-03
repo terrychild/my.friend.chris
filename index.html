@@ -2,9 +2,26 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
+		<link href="escape.css" rel="stylesheet" type="text/css">
 		<title>Escape</title>
 	</head>
 	<body>
-		<p>stuff goes here</p>
+		<canvas id="canvas"></canvas>
+		<script>
+			var canvas = document.getElementById("canvas");
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+
+			var context = canvas.getContext("2d");
+
+			context.rect(0, 0, canvas.width, canvas.height);
+		
+			var gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+			gradient.addColorStop(0, "#000088");
+			gradient.addColorStop(1, "#8888FF");
+			
+			context.fillStyle = gradient;
+			context.fill();
+		</script>
 	</body>
 </html>
