@@ -13,20 +13,23 @@
 			canvas.height = window.innerHeight;
 
 			var tileSize = 20;
+			var wallWidth = 2;
 			var width = Math.floor(canvas.width/tileSize);
 			var height = Math.floor(canvas.height/tileSize);
 			var xoffset = (canvas.width-(width*tileSize))/2;
 			var yoffset = (canvas.height-(height*tileSize))/2;
 
-			console.log(canvas.width, canvas.height, width, height, xoffset, yoffset)
-
 			var context = canvas.getContext("2d");
 
+			context.rect(0, 0, canvas.width, canvas.height);
+			context.fillStyle="#000000";
+			context.fill();
+			
 			var floor_image = new Image();
 			floor_image.src = "media/floor.png";
 			floor_image.onload = function() {
-				for(var y=1; y<height-1; y++) {
-					for(var x=1; x<width-1; x++) {
+				for(var y=wallWidth; y<height-wallWidth; y++) {
+					for(var x=wallWidth; x<width-wallWidth; x++) {
 						context.drawImage(floor_image, x*tileSize+xoffset, y*tileSize+yoffset);		
 					}
 				}
@@ -37,17 +40,24 @@
 			wall_image.onload = function() {
 				var x, y;
 
-				for(x=0; x<width; x++) {
-					context.drawImage(wall_image, x*tileSize+xoffset, yoffset);	
+				for(y=0; y<wallWidth; y++) {
+					for(x=0; x<width; x++) {
+						context.drawImage(wall_image, x*tileSize+xoffset, y*tileSize+yoffset);	
+					}
 				}
 				for(y=1; y<height-1; y++) {
-					context.drawImage(wall_image, xoffset, y*tileSize+yoffset);
-					context.drawImage(wall_image, (width-1)*tileSize+xoffset, y*tileSize+yoffset);
+					for(x=0; x<wallWidth; x++) {
+						context.drawImage(wall_image, x*tileSize+xoffset, y*tileSize+yoffset);
+						context.drawImage(wall_image, (width-x-1)*tileSize+xoffset, y*tileSize+yoffset);
+					}
 				}
-				for(x=0; x<width; x++) {
-					context.drawImage(wall_image, x*tileSize+xoffset, (height-1)*tileSize+yoffset);	
+				for(y=height-wallWidth; y<height; y++) {
+					for(x=0; x<width; x++) {
+						context.drawImage(wall_image, x*tileSize+xoffset, y*tileSize+yoffset);	
+					}
 				}
 			}
+			
 		</script>
 	</body>
 </html>
