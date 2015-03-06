@@ -61,4 +61,5 @@ body {
 }
 canvas {
 	display: block;
+	background: #000000;
 }
