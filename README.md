@@ -5,3 +5,5 @@ It is a simple project for me to experiment with:
  * JQuery
  * JavaScript canvas
  * SourceTree/GitHub.
+
+ It's not really started yet...
