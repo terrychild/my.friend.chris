@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<link href="escape.css" rel="stylesheet" type="text/css">
+		<script src="js/jquery-1.11.2.js"></script>
 		<title>Escape</title>
 	</head>
 	<body>
@@ -57,7 +58,15 @@
 					}
 				}
 			}
-			
+
+
+			// test JQuery
+			$("<div>")
+				.appendTo("body")
+				.text("Hello, World!")
+				.addClass("popup")
+				.hide()
+				.fadeIn();
 		</script>
 	</body>
 </html>
