@@ -63,3 +63,12 @@ canvas {
 	display: block;
 	background: #000000;
 }
+
+.popup {
+	position: absolute;
+	top: 100px;
+	left: 100px;
+	padding: 5px;
+	background: #FF0000;
+	border: #00FF00 solid 2px;
+}
