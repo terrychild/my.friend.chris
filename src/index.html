@@ -13,8 +13,8 @@
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
 
-			var tileSize = 20;
-			var wallWidth = 2;
+			var tileSize = 40;
+			var wallWidth = 1;
 			var width = Math.floor(canvas.width/tileSize);
 			var height = Math.floor(canvas.height/tileSize);
 			var xoffset = (canvas.width-(width*tileSize))/2;
@@ -59,6 +59,27 @@
 				}
 			}
 
+			// test man
+			var man_up_image = new Image();
+			man_up_image.src = "media/man_up.png";
+			man_up_image.onload = function() {
+				context.drawImage(man_up_image, (width*tileSize/2)+xoffset, (((height/2)-1)*tileSize)+yoffset);
+			}
+			var man_down_image = new Image();
+			man_down_image.src = "media/man_down.png";
+			man_down_image.onload = function() {
+				context.drawImage(man_down_image, (width*tileSize/2)+xoffset, (((height/2)+1)*tileSize)+yoffset);
+			}
+			var man_left_image = new Image();
+			man_left_image.src = "media/man_left.png";
+			man_left_image.onload = function() {
+				context.drawImage(man_left_image, (((width/2)-1)*tileSize)+xoffset, (height*tileSize/2)+yoffset);
+			}
+			var man_right_image = new Image();
+			man_right_image.src = "media/man_right.png";
+			man_right_image.onload = function() {
+				context.drawImage(man_right_image, (((width/2)+1)*tileSize)+xoffset, (height*tileSize/2)+yoffset);
+			}
 
 			// test JQuery
 			$("<div>")
