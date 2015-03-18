@@ -12,48 +12,66 @@
 			var tileSize = 40;
 			var wallWidth = 1;
 
-			var width, height, xoffset, yoffset;
+			var view = {
+				width: 0,
+				height: 0,
+				xoffset: 0, 
+				yoffset: 0
+			}
+
+			var map = {
+				width: 20,
+				height: 12,
+				map: [
+					"WWWWWWWWWWWWWWWWWWWW",
+					"W                  W",
+					"W WWWWWWWWWWWWWWWW W",
+					"W W              W W",
+					"W W WWWWWWWW WWW W W",
+					"W W W          W W W",
+					"W   W          W W W",
+					"W W WWWWWWWWWWWW W W",
+					"W W              W W",
+					"W WWWWWWWWWWWWWWWW W",
+					"W                  W",
+					"WWWWWWWWWWWWWWWWWWWW"
+				]
+			}
 
 			// load images
+			var imagesLoading = 0;
+
+			function loadImage(url) {
+				imagesLoading++;
+
+				var image = new Image();
+				image.src = url;
+				image.onload = function() {
+					imagesLoading--;
+					if(imagesLoading==0) {
+						draw();
+					}
+				}
+				return image;
+			}
+
+			var images = {
+				" ": loadImage("media/floor.png"),
+				"W": loadImage("media/wall.png")
+			}
 
 
 			// draw
 			function draw() {
 				console.log("draw");
-				if(width && height) {
-					var floor_image = new Image();
-					floor_image.src = "media/floor.png";
-					floor_image.onload = function() {
-						for(var y=wallWidth; y<height-wallWidth; y++) {
-							for(var x=wallWidth; x<width-wallWidth; x++) {
-								context.drawImage(floor_image, x*tileSize+xoffset, y*tileSize+yoffset);		
-							}
+
+				if(view.width && view.height && imagesLoading==0) {
+					for(y=0; y<map.height; y++) {
+						for(x=0; x<map.width; x++) {
+							context.drawImage(images[map.map[y].substr(x,1)], x*tileSize+view.xoffset, y*tileSize+view.yoffset);
 						}
 					}
-
-					var wall_image = new Image();
-					wall_image.src = "media/wall.png";
-					wall_image.onload = function() {
-						var x, y;
-
-						for(y=0; y<wallWidth; y++) {
-							for(x=0; x<width; x++) {
-								context.drawImage(wall_image, x*tileSize+xoffset, y*tileSize+yoffset);	
-							}
-						}
-						for(y=1; y<height-1; y++) {
-							for(x=0; x<wallWidth; x++) {
-								context.drawImage(wall_image, x*tileSize+xoffset, y*tileSize+yoffset);
-								context.drawImage(wall_image, (width-x-1)*tileSize+xoffset, y*tileSize+yoffset);
-							}
-						}
-						for(y=height-wallWidth; y<height; y++) {
-							for(x=0; x<width; x++) {
-								context.drawImage(wall_image, x*tileSize+xoffset, y*tileSize+yoffset);	
-							}
-						}
-					}
-				}
+				}				
 			}
 			
 			// resize
@@ -62,10 +80,10 @@
 				canvas.width = window.innerWidth;
 				canvas.height = window.innerHeight;
 
-				width = Math.floor(canvas.width/tileSize);
-				height = Math.floor(canvas.height/tileSize);
-				xoffset = (canvas.width-(width*tileSize))/2;
-				yoffset = (canvas.height-(height*tileSize))/2;
+				view.width = Math.floor(canvas.width/tileSize);
+				view.height = Math.floor(canvas.height/tileSize);
+				view.xoffset = (canvas.width-(view.width*tileSize))/2;
+				view.yoffset = (canvas.height-(view.height*tileSize))/2;
 
 				draw();
 			}
@@ -76,11 +94,13 @@
 		})();
 
 		// test JQuery
+		/*
 		$("<div>")
 			.appendTo("body")
 			.text("Hello, World!")
 			.addClass("popup")
 			.hide()
 			.fadeIn();
+		*/
 	});
 })(jQuery);
