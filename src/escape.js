@@ -17,8 +17,16 @@
 				height: 0,
 				xoffset: 0, 
 				yoffset: 0
-			}
+			};
 
+			// status
+			var status = {
+				x: 1,
+				y: 1,
+				d: 2
+			};
+
+			// levels
 			var map = {
 				width: 20,
 				height: 12,
@@ -36,7 +44,7 @@
 					"W                  W",
 					"WWWWWWWWWWWWWWWWWWWW"
 				]
-			}
+			};
 
 			// load images
 			var imagesLoading = 0;
@@ -57,7 +65,11 @@
 
 			var images = {
 				" ": loadImage("media/floor.png"),
-				"W": loadImage("media/wall.png")
+				"W": loadImage("media/wall.png"),
+				"0": loadImage("media/man_up.png"),
+				"1": loadImage("media/man_right.png"),
+				"2": loadImage("media/man_down.png"),
+				"3": loadImage("media/man_left.png")
 			}
 
 
@@ -71,6 +83,8 @@
 							context.drawImage(images[map.map[y].substr(x,1)], x*tileSize+view.xoffset, y*tileSize+view.yoffset);
 						}
 					}
+
+					context.drawImage(images[status.d], status.x*tileSize+view.xoffset, status.y*tileSize+view.yoffset);
 				}				
 			}
 			
@@ -90,6 +104,39 @@
 			resize();
 			$(window).on("resize", resize);
 
+
+			// simulate
+			$(document).keydown(function(e) {
+				console.log("move");
+				var newX = status.x;
+				var newY = status.y;
+
+				switch(e.which) {
+					case 38: // up
+						status.d = 0;
+						newY--;
+						break;
+					case 39: // right
+						status.d = 1;
+						newX++;
+						break;
+					case 40: // down
+						status.d = 2;
+						newY++;
+						break;
+					case 37: // left
+						status.d = 3;
+						newX--;
+						break;
+				}
+
+				if(map.map[newY].substr(newX,1)===" ") {
+					status.x=newX;
+					status.y=newY;
+				}
+
+				draw();
+			});
 
 		})();
 
