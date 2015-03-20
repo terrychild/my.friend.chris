@@ -1,7 +1,5 @@
 (function($) {
 	$(function() {
-		console.log("ready");
-
 		var maze = (function() {
 			// create canvas
 			var $canvas = $("<canvas>").appendTo("body");
@@ -75,8 +73,6 @@
 
 			// draw
 			function draw() {
-				console.log("draw");
-
 				if(view.width && view.height && imagesLoading==0) {
 					for(y=0; y<map.height; y++) {
 						for(x=0; x<map.width; x++) {
@@ -90,7 +86,6 @@
 			
 			// resize
 			function resize() {
-				console.log("resize");
 				canvas.width = window.innerWidth;
 				canvas.height = window.innerHeight;
 
@@ -106,8 +101,7 @@
 
 
 			// simulate
-			$(document).keydown(function(e) {
-				console.log("move");
+			$(window).keydown(function(e) {
 				var newX = status.x;
 				var newY = status.y;
 
