@@ -17,13 +17,6 @@
 				yoffset: 0
 			};
 
-			// status
-			var status = {
-				x: 1,
-				y: 1,
-				d: 2
-			};
-
 			// levels
 			var map = {
 				width: 20,
@@ -44,6 +37,17 @@
 				]
 			};
 
+			// status
+			var status = {
+				x: 1,
+				y: 1,
+				lastX: 1,
+				lastY: 1,
+				moving: 0,
+				facing: 2,
+				key: -1
+			};
+
 			// load images
 			var imagesLoading = 0;
 
@@ -55,7 +59,7 @@
 				image.onload = function() {
 					imagesLoading--;
 					if(imagesLoading==0) {
-						draw();
+						draw(true);
 					}
 				}
 				return image;
@@ -72,15 +76,39 @@
 
 
 			// draw
-			function draw() {
+			function draw(everything) {
 				if(view.width && view.height && imagesLoading==0) {
-					for(y=0; y<map.height; y++) {
-						for(x=0; x<map.width; x++) {
-							context.drawImage(images[map.map[y].substr(x,1)], x*tileSize+view.xoffset, y*tileSize+view.yoffset);
+					// draw map
+					if(everything) {
+						for(y=0; y<map.height; y++) {
+							for(x=0; x<map.width; x++) {
+								context.drawImage(images[map.map[y].substr(x,1)], x*tileSize+view.xoffset, y*tileSize+view.yoffset);
+							}
 						}
+					} else {
+						context.drawImage(images[map.map[status.lastY].substr(status.lastX,1)], status.lastX*tileSize+view.xoffset, status.lastY*tileSize+view.yoffset);
+						context.drawImage(images[map.map[status.y].substr(status.x,1)], status.x*tileSize+view.xoffset, status.y*tileSize+view.yoffset);
 					}
 
-					context.drawImage(images[status.d], status.x*tileSize+view.xoffset, status.y*tileSize+view.yoffset);
+					// draw man
+					var partialX = 0;
+					var partialY = 0;
+					var partialOffset = status.moving*tileSize;
+					switch(status.facing) {
+						case 0:
+							partialY = 0+partialOffset;
+							break;
+						case 1:
+							partialX = 0-partialOffset;
+							break;
+						case 2:
+							partialY = 0-partialOffset;
+							break;
+						case 3:
+							partialX = 0+partialOffset;
+							break;	
+					}
+					context.drawImage(images[status.facing], status.x*tileSize+partialX+view.xoffset, status.y*tileSize+partialY+view.yoffset);
 				}				
 			}
 			
@@ -94,42 +122,90 @@
 				view.xoffset = (canvas.width-(view.width*tileSize))/2;
 				view.yoffset = (canvas.height-(view.height*tileSize))/2;
 
-				draw();
+				draw(true);
 			}
 			resize();
 			$(window).on("resize", resize);
 
 
 			// simulate
-			$(window).keydown(function(e) {
-				var newX = status.x;
-				var newY = status.y;
+			var timer;
 
+			function move() {
+				if(status.moving===0) {
+					if(status.key>=0) {
+						status.facing = status.key;
+
+						var newX = status.x;
+						var newY = status.y;
+					
+						switch(status.facing) {
+							case 0:
+								newY--;
+								break;
+							case 1:
+								newX++;
+								break;
+							case 2:
+								newY++;
+								break;
+							case 3:
+								newX--;
+								break;
+						}
+
+						if(map.map[newY].substr(newX,1)===" ") {
+							status.moving = 0.75;
+							status.lastX = status.x;
+							status.lastY = status.y;
+							status.x=newX;
+							status.y=newY;
+						}
+					} else {
+						if(timer) {
+							clearInterval(timer);
+							timer = null;
+						}
+					}
+				} else {
+					status.moving-=0.125;
+				}
+
+				draw(false);
+			}
+
+			$(window).on("keydown", function(e) {
 				switch(e.which) {
 					case 38: // up
-						status.d = 0;
-						newY--;
+						status.key = 0;
 						break;
 					case 39: // right
-						status.d = 1;
-						newX++;
+						status.key = 1;
 						break;
 					case 40: // down
-						status.d = 2;
-						newY++;
+						status.key = 2;
 						break;
 					case 37: // left
-						status.d = 3;
-						newX--;
+						status.key = 3;
 						break;
 				}
-
-				if(map.map[newY].substr(newX,1)===" ") {
-					status.x=newX;
-					status.y=newY;
+				if(status.key>=0) {
+					if(!timer) {
+						move();
+						timer = setInterval(move, 25);
+					}
 				}
+			});
 
-				draw();
+			$(window).on("keyup", function(e) {
+				switch(e.which) {
+					case 38: // up
+					case 39: // right
+					case 40: // down
+					case 37: // left
+						status.key = -1;
+						break;
+				}
 			});
 
 		})();
