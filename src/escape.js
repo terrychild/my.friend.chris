@@ -44,6 +44,7 @@
 				lastX: 1,
 				lastY: 1,
 				moving: 0,
+				moveStartTime: null,
 				facing: 2,
 				key: -1
 			};
@@ -129,9 +130,10 @@
 
 
 			// simulate
-			var timer;
+			var timer=null;
 
-			function move() {
+			function move(time) {
+				timer = null;
 				if(status.moving===0) {
 					if(status.key>=0) {
 						status.facing = status.key;
@@ -155,20 +157,18 @@
 						}
 
 						if(map.map[newY].substr(newX,1)===" ") {
-							status.moving = 0.75;
+							status.moving = 1;
+							status.moveStartTime = time;
 							status.lastX = status.x;
 							status.lastY = status.y;
 							status.x=newX;
 							status.y=newY;
-						}
-					} else {
-						if(timer) {
-							clearInterval(timer);
-							timer = null;
+							timer = requestAnimationFrame(move);
 						}
 					}
 				} else {
-					status.moving-=0.125;
+					status.moving=Math.max(1-((time-status.moveStartTime)/150), 0);
+					timer = requestAnimationFrame(move);
 				}
 
 				draw(false);
@@ -191,8 +191,7 @@
 				}
 				if(status.key>=0) {
 					if(!timer) {
-						move();
-						timer = setInterval(move, 25);
+						timer = requestAnimationFrame(move);
 					}
 				}
 			});
@@ -200,10 +199,25 @@
 			$(window).on("keyup", function(e) {
 				switch(e.which) {
 					case 38: // up
+						if(status.key===0) {
+							status.key = -1;	
+						}
+						break;
 					case 39: // right
+						if(status.key===1) {
+							status.key = -1;	
+						}
+						break;
 					case 40: // down
+						if(status.key===2) {
+							status.key = -1;	
+						}
+						break;
 					case 37: // left
-						status.key = -1;
+						if(status.key===3) {
+							status.key = -1;	
+						}
+						break;
 						break;
 				}
 			});
