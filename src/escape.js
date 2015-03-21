@@ -168,7 +168,7 @@
 						}
 					}
 				} else {
-					status.moving-=0.25;
+					status.moving-=0.125;
 				}
 
 				draw(false);
@@ -192,7 +192,7 @@
 				if(status.key>=0) {
 					if(!timer) {
 						move();
-						timer = setInterval(move, 50);
+						timer = setInterval(move, 25);
 					}
 				}
 			});
