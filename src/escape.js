@@ -43,7 +43,7 @@
 				y: 1,
 				lastX: 1,
 				lastY: 1,
-				moving: false,
+				moving: 0,
 				facing: 2,
 				key: -1
 			};
@@ -78,6 +78,7 @@
 			// draw
 			function draw(everything) {
 				if(view.width && view.height && imagesLoading==0) {
+					// draw map
 					if(everything) {
 						for(y=0; y<map.height; y++) {
 							for(x=0; x<map.width; x++) {
@@ -86,9 +87,28 @@
 						}
 					} else {
 						context.drawImage(images[map.map[status.lastY].substr(status.lastX,1)], status.lastX*tileSize+view.xoffset, status.lastY*tileSize+view.yoffset);
+						context.drawImage(images[map.map[status.y].substr(status.x,1)], status.x*tileSize+view.xoffset, status.y*tileSize+view.yoffset);
 					}
 
-					context.drawImage(images[status.facing], status.x*tileSize+view.xoffset, status.y*tileSize+view.yoffset);
+					// draw man
+					var partialX = 0;
+					var partialY = 0;
+					var partialOffset = status.moving*tileSize;
+					switch(status.facing) {
+						case 0:
+							partialY = 0+partialOffset;
+							break;
+						case 1:
+							partialX = 0-partialOffset;
+							break;
+						case 2:
+							partialY = 0-partialOffset;
+							break;
+						case 3:
+							partialX = 0+partialOffset;
+							break;	
+					}
+					context.drawImage(images[status.facing], status.x*tileSize+partialX+view.xoffset, status.y*tileSize+partialY+view.yoffset);
 				}				
 			}
 			
@@ -112,35 +132,46 @@
 			var timer;
 
 			function move() {
-				console.log("key is "+status.key);
-				status.facing = status.key;
+				if(status.moving===0) {
+					if(status.key>=0) {
+						status.facing = status.key;
 
-				var newX = status.x;
-				var newY = status.y;
-				
-				switch(status.facing) {
-					case 0:
-						newY--;
-						break;
-					case 1:
-						newX++;
-						break;
-					case 2:
-						newY++;
-						break;
-					case 3:
-						newX--;
-						break;
+						var newX = status.x;
+						var newY = status.y;
+					
+						switch(status.facing) {
+							case 0:
+								newY--;
+								break;
+							case 1:
+								newX++;
+								break;
+							case 2:
+								newY++;
+								break;
+							case 3:
+								newX--;
+								break;
+						}
+
+						if(map.map[newY].substr(newX,1)===" ") {
+							status.moving = 0.75;
+							status.lastX = status.x;
+							status.lastY = status.y;
+							status.x=newX;
+							status.y=newY;
+						}
+					} else {
+						if(timer) {
+							clearInterval(timer);
+							timer = null;
+						}
+					}
+				} else {
+					status.moving-=0.25;
 				}
 
-				if(map.map[newY].substr(newX,1)===" ") {
-					status.lastX = status.x;
-					status.lastY = status.y;
-					status.x=newX;
-					status.y=newY;
-
-					draw(false);
-				}
+				draw(false);
 			}
 
 			$(window).on("keydown", function(e) {
@@ -161,7 +192,7 @@
 				if(status.key>=0) {
 					if(!timer) {
 						move();
-						timer = setInterval(move, 250);
+						timer = setInterval(move, 50);
 					}
 				}
 			});
@@ -173,10 +204,6 @@
 					case 40: // down
 					case 37: // left
 						status.key = -1;
-						if(timer) {
-							clearInterval(timer);
-							timer = null;
-						}
 						break;
 				}
 			});
