@@ -78,44 +78,49 @@
 
 
 		// draw
-		function drawTile(x, y) {
-			context.drawImage(images[map.map[y].substr(x,1)], x*tileSize+view.xoffset, y*tileSize+view.yoffset);
+		function drawTile(image, x, y) {
+			context.drawImage(image, x*tileSize+view.xoffset, y*tileSize+view.yoffset);
 		}
+		function drawMapTile(x, y) {
+			drawTile(images[map.map[y].substr(x,1)], x, y);
+		}
+		function drawManTile() {
+			var x = status.x;
+			var y = status.y;
+			switch(status.facing) {
+				case 0:
+					y -= status.moving;
+					break;
+				case 1:
+					x += status.moving;
+					break;
+				case 2:
+					y += status.moving;
+					break;
+				case 3:
+					x -= status.moving;
+					break;	
+			}
 
+			drawTile(images[status.facing], x, y);
+		}
 		function draw(everything) {
 			if(view.width && view.height && imagesLoading==0) {
 				// draw map
 				if(everything) {
 					for(y=0; y<map.height; y++) {
 						for(x=0; x<map.width; x++) {
-							drawTile(x, y);
+							drawMapTile(x, y);
 						}
 					}
 				} else {
-					drawTile(status.lastX, status.lastY);
-					drawTile(status.x, status.y);
-					drawTile(status.nextX, status.nextY);
+					drawMapTile(status.lastX, status.lastY);
+					drawMapTile(status.x, status.y);
+					drawMapTile(status.nextX, status.nextY);
 				}
 
 				// draw man
-				var partialX = 0;
-				var partialY = 0;
-				var partialOffset = status.moving*tileSize;
-				switch(status.facing) {
-					case 0:
-						partialY = 0-partialOffset;
-						break;
-					case 1:
-						partialX = 0+partialOffset;
-						break;
-					case 2:
-						partialY = 0+partialOffset;
-						break;
-					case 3:
-						partialX = 0-partialOffset;
-						break;	
-				}
-				context.drawImage(images[status.facing], status.x*tileSize+partialX+view.xoffset, status.y*tileSize+partialY+view.yoffset);
+				drawManTile();
 			}				
 		}
 		
