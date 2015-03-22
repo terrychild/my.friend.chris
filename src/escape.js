@@ -143,8 +143,12 @@
 		// simulate
 		var timer=null;
 
+		function isMoving() {
+			return status.nextX!=status.x || status.nextY!=status.y;
+		}
+
 		function move(time) {
-			if(status.nextX!=status.x || status.nextY!=status.y) {
+			if(isMoving()) {
 				status.moving=(time-status.moveStartTime)/150;
 
 				if(status.moving>=1) {
@@ -157,7 +161,7 @@
 				}
 			}
 
-			if(status.nextX===status.x && status.nextY===status.y) {
+			if(!isMoving()) {
 				if(status.key>=0) {
 					status.facing = status.key;
 
@@ -187,7 +191,7 @@
 				}
 			}
 
-			if(status.nextX!=status.x || status.nextY!=status.y) {
+			if(isMoving()) {
 				timer = requestAnimationFrame(move);
 			} else {
 				timer = null;
