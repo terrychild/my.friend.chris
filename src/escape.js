@@ -126,8 +126,8 @@
 
 			view.width = Math.floor(canvas.width/tileSize);
 			view.height = Math.floor(canvas.height/tileSize);
-			view.xoffset = (canvas.width-(view.width*tileSize))/2;
-			view.yoffset = (canvas.height-(view.height*tileSize))/2;
+			view.xoffset = Math.floor((canvas.width-(view.width*tileSize))/2);
+			view.yoffset = Math.floor((canvas.height-(view.height*tileSize))/2);
 
 			draw(true);
 		}
