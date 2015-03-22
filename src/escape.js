@@ -43,6 +43,8 @@
 				y: 1,
 				lastX: 1,
 				lastY: 1,
+				nextX: 1,
+				nextY: 1,
 				moving: 0,
 				moveStartTime: null,
 				facing: 2,
@@ -77,18 +79,23 @@
 
 
 			// draw
+			function drawTile(x, y) {
+				context.drawImage(images[map.map[y].substr(x,1)], x*tileSize+view.xoffset, y*tileSize+view.yoffset);
+			}
+
 			function draw(everything) {
 				if(view.width && view.height && imagesLoading==0) {
 					// draw map
 					if(everything) {
 						for(y=0; y<map.height; y++) {
 							for(x=0; x<map.width; x++) {
-								context.drawImage(images[map.map[y].substr(x,1)], x*tileSize+view.xoffset, y*tileSize+view.yoffset);
+								drawTile(x, y);
 							}
 						}
 					} else {
-						context.drawImage(images[map.map[status.lastY].substr(status.lastX,1)], status.lastX*tileSize+view.xoffset, status.lastY*tileSize+view.yoffset);
-						context.drawImage(images[map.map[status.y].substr(status.x,1)], status.x*tileSize+view.xoffset, status.y*tileSize+view.yoffset);
+						drawTile(status.lastX, status.lastY);
+						drawTile(status.x, status.y);
+						drawTile(status.nextX, status.nextY);
 					}
 
 					// draw man
@@ -97,16 +104,16 @@
 					var partialOffset = status.moving*tileSize;
 					switch(status.facing) {
 						case 0:
-							partialY = 0+partialOffset;
-							break;
-						case 1:
-							partialX = 0-partialOffset;
-							break;
-						case 2:
 							partialY = 0-partialOffset;
 							break;
-						case 3:
+						case 1:
 							partialX = 0+partialOffset;
+							break;
+						case 2:
+							partialY = 0+partialOffset;
+							break;
+						case 3:
+							partialX = 0-partialOffset;
 							break;	
 					}
 					context.drawImage(images[status.facing], status.x*tileSize+partialX+view.xoffset, status.y*tileSize+partialY+view.yoffset);
@@ -133,14 +140,26 @@
 			var timer=null;
 
 			function move(time) {
-				timer = null;
-				if(status.moving===0) {
+				if(status.nextX!=status.x || status.nextY!=status.y) {
+					status.moving=(time-status.moveStartTime)/150;
+
+					if(status.moving>=1) {
+						status.lastX = status.x;
+						status.lastY = status.y;
+						status.x = status.nextX;
+						status.y = status.nextY;
+
+						status.moving = status.moving - Math.floor(status.moving);
+					}
+				}
+
+				if(status.nextX===status.x && status.nextY===status.y) {
 					if(status.key>=0) {
 						status.facing = status.key;
 
 						var newX = status.x;
 						var newY = status.y;
-					
+						
 						switch(status.facing) {
 							case 0:
 								newY--;
@@ -157,18 +176,18 @@
 						}
 
 						if(map.map[newY].substr(newX,1)===" ") {
-							status.moving = 1;
 							status.moveStartTime = time;
-							status.lastX = status.x;
-							status.lastY = status.y;
-							status.x=newX;
-							status.y=newY;
-							timer = requestAnimationFrame(move);
+							status.nextX=newX;
+							status.nextY=newY;
 						}
 					}
-				} else {
-					status.moving=Math.max(1-((time-status.moveStartTime)/150), 0);
+				}
+
+				if(status.nextX!=status.x || status.nextY!=status.y) {
 					timer = requestAnimationFrame(move);
+				} else {
+					timer = null;
+					status.moving = 0;
 				}
 
 				draw(false);
@@ -217,7 +236,6 @@
 						if(status.key===3) {
 							status.key = -1;	
 						}
-						break;
 						break;
 				}
 			});
