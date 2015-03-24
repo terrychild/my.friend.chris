@@ -1,13 +1,10 @@
 (function($) {
 	$(function() {
-		// create canvas
-		var $canvas = $("<canvas>").appendTo("body");
-		var canvas = $canvas.get(0);
-		var context = canvas.getContext("2d");
+		// --- constants ---
+		var NULL=0, WALL=1, FLOOR=2;
 
-		// settings
+		// --- settings ---
 		var tileSize = 40;
-		var wallWidth = 1;
 
 		var view = {
 			width: 0,
@@ -16,7 +13,7 @@
 			yoffset: 0
 		};
 
-		// status
+		// --- status ---
 		var status = {
 			level: null,
 
@@ -33,18 +30,7 @@
 			key: -1
 		};
 
-		// levels
-		var NULL=0, WALL=1, FLOOR=2;
-
-		var levels = [
-			{
-				loaded: false,
-				bitmap: "m02.bmp",
-				startX: 1,
-				startY: 1
-			}
-		];
-
+		// --- helper functions ---
 		function toHex(number) {
 			var rv = number.toString(16);
 			if(rv.length==1) {
@@ -52,6 +38,53 @@
 			}
 			return rv.toUpperCase();
 		}
+
+		function isReady() {
+			if(context && view.width && view.height && imagesLoading==0 && status.level) {
+				return levels.every(function(level) {
+					return level.loaded;
+				});
+			}
+			return false;
+		}
+
+		// --- images ---
+		var imagesLoading = 0;
+
+		function loadImage(url) {
+			imagesLoading++;
+
+			var image = new Image();
+			image.src = url;
+			image.onload = function() {
+				imagesLoading--;
+				if(imagesLoading==0) {
+					draw(true);
+				}
+			}
+			return image;
+		}
+
+		var images = {};
+		images[FLOOR] = loadImage("media/floor.png");
+		images[WALL] = loadImage("media/wall.png");
+
+		var manImages = {
+			"0": loadImage("media/man_up.png"),
+			"1": loadImage("media/man_right.png"),
+			"2": loadImage("media/man_down.png"),
+			"3": loadImage("media/man_left.png")
+		}
+
+		// --- levels ---
+		var levels = [
+			{
+				loaded: false,
+				bitmap: "m02.bmp",
+				startX: 15,
+				startY: 12
+			}
+		];
 
 		var mapContext = $("<canvas>").get(0).getContext("2d");
 		levels.forEach(function(level, index) {
@@ -96,44 +129,10 @@
 			}
 		});
 
-		// load images
-		var imagesLoading = 0;
-
-		function loadImage(url) {
-			imagesLoading++;
-
-			var image = new Image();
-			image.src = url;
-			image.onload = function() {
-				imagesLoading--;
-				if(imagesLoading==0) {
-					draw(true);
-				}
-			}
-			return image;
-		}
-
-		var images = {};
-		images[FLOOR] = loadImage("media/floor.png");
-		images[WALL] = loadImage("media/wall.png");
-
-		var manImages = {
-			"0": loadImage("media/man_up.png"),
-			"1": loadImage("media/man_right.png"),
-			"2": loadImage("media/man_down.png"),
-			"3": loadImage("media/man_left.png")
-		}
-
-
-		// draw
-		function isReady() {
-			if(view.width && view.height && imagesLoading==0 && status.level) {
-				return levels.every(function(level) {
-					return level.loaded;
-				});
-			}
-			return false;
-		}
+		// --- draw ---
+		var $canvas = $("<canvas>").appendTo("body");
+		var canvas = $canvas.get(0);
+		var context = canvas.getContext("2d");
 
 		function drawTile(image, x, y) {
 			if(image) {
@@ -165,7 +164,6 @@
 		}
 		function draw(everything) {
 			if(isReady()) {				
-				// draw map
 				if(everything) {
 					// TODO: clear everything
 					for(y=0; y<status.level.height; y++) {
@@ -179,12 +177,11 @@
 					drawMapTile(status.nextX, status.nextY);
 				}
 
-				// draw man
 				drawManTile();
 			}				
 		}
 		
-		// resize
+		// --- resize ---
 		function resize() {
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
@@ -200,7 +197,7 @@
 		$(window).on("resize", resize);
 
 
-		// simulate
+		// --- simulate ---
 		var timer=null;
 
 		function isMoving() {
@@ -308,7 +305,7 @@
 			}
 		});
 
-		// test JQuery
+		// --- test JQuery ---
 		/*
 		$("<div>")
 			.appendTo("body")
