@@ -7,7 +7,7 @@ It is a simple project for me to experiment with:
  * SourceTree/GitHub
 
 ## Progress
-So far I have got a simple hard coded maze (with no exit) and logic that lets you move Chris arround the maze.
+So far a maze (with no exit) can be loaded from a bitmap image and there is logic and event handlers that lets you move Chris arround the maze.
 
 ## What's next
-Maze maps will be defined in bitmaps, so the next step is to replace the hard coded map with a system that reads and interprets the bitmaps.
+The two next features are map scrolling for when the map is larger than the view port and adding exits and code to move between levels.
