@@ -1,13 +1,10 @@
 (function($) {
 	$(function() {
-		// create canvas
-		var $canvas = $("<canvas>").appendTo("body");
-		var canvas = $canvas.get(0);
-		var context = canvas.getContext("2d");
+		// --- constants ---
+		var NULL=0, WALL=1, FLOOR=2;
 
-		// settings
+		// --- settings ---
 		var tileSize = 40;
-		var wallWidth = 1;
 
 		var view = {
 			width: 0,
@@ -16,41 +13,42 @@
 			yoffset: 0
 		};
 
-		// levels
-		var map = {
-			width: 20,
-			height: 12,
-			map: [
-				"WWWWWWWWWWWWWWWWWWWW",
-				"W                  W",
-				"W WWWWWWWWWWWWWWWW W",
-				"W W              W W",
-				"W W WWWWWWWW WWW W W",
-				"W W W          W   W",
-				"W   W          W W W",
-				"W W WWW WWWWWWWW W W",
-				"W W              W W",
-				"W WWWWWWWWWWWWWWWW W",
-				"W                  W",
-				"WWWWWWWWWWWWWWWWWWWW"
-			]
-		};
-
-		// status
+		// --- status ---
 		var status = {
-			x: 1,
-			y: 1,
-			lastX: 1,
-			lastY: 1,
-			nextX: 1,
-			nextY: 1,
+			level: null,
+
+			x: null,
+			y: null,
+			lastX: null,
+			lastY: null,
+			nextX: null,
+			nextY: null,
+
 			moving: 0,
 			moveStartTime: null,
 			facing: 2,
 			key: -1
 		};
 
-		// load images
+		// --- helper functions ---
+		function toHex(number) {
+			var rv = number.toString(16);
+			if(rv.length==1) {
+				rv = "0"+rv;
+			}
+			return rv.toUpperCase();
+		}
+
+		function isReady() {
+			if(context && view.width && view.height && imagesLoading==0 && status.level) {
+				return levels.every(function(level) {
+					return level.loaded;
+				});
+			}
+			return false;
+		}
+
+		// --- images ---
 		var imagesLoading = 0;
 
 		function loadImage(url) {
@@ -67,22 +65,82 @@
 			return image;
 		}
 
-		var images = {
-			" ": loadImage("media/floor.png"),
-			"W": loadImage("media/wall.png"),
+		var images = {};
+		images[FLOOR] = loadImage("media/floor.png");
+		images[WALL] = loadImage("media/wall.png");
+
+		var manImages = {
 			"0": loadImage("media/man_up.png"),
 			"1": loadImage("media/man_right.png"),
 			"2": loadImage("media/man_down.png"),
 			"3": loadImage("media/man_left.png")
 		}
 
+		// --- levels ---
+		var levels = [
+			{
+				loaded: false,
+				bitmap: "m02.bmp",
+				startX: 15,
+				startY: 12
+			}
+		];
 
-		// draw
+		var mapContext = $("<canvas>").get(0).getContext("2d");
+		levels.forEach(function(level, index) {
+			var image = new Image();
+			image.src = "maps/"+level.bitmap;
+			image.onload = function() {
+				level.width = image.width;
+				level.height = image.height;
+				level.map = [];
+
+				mapContext.drawImage(image, 0, 0);
+				var data = mapContext.getImageData(0, 0, image.width, image.height).data;
+				for(var y=0; y<image.height; y++) {
+					var row = [];
+					level.map.push(row);
+
+					for(var x=0; x<image.width; x++) {
+						var j = ((y*image.width)+x)*4;
+						switch(toHex(data[j+0])+toHex(data[j+1])+toHex(data[j+2])) {
+							case "808080":
+								row.push(WALL);
+								break;
+							case "0000FF":
+								row.push(FLOOR);
+								break;
+							default:
+								row.push(NULL);
+						}
+						
+					}
+				}
+
+				level.loaded = true;
+
+				if(index==0) {
+					status.level = level;
+					status.x = status.lastX = status.nextX = level.startX;
+					status.y = status.lastY = status.nextY = level.startY;
+				}
+
+				draw();
+			}
+		});
+
+		// --- draw ---
+		var $canvas = $("<canvas>").appendTo("body");
+		var canvas = $canvas.get(0);
+		var context = canvas.getContext("2d");
+
 		function drawTile(image, x, y) {
-			context.drawImage(image, x*tileSize+view.xoffset, y*tileSize+view.yoffset);
+			if(image) {
+				context.drawImage(image, x*tileSize+view.xoffset, y*tileSize+view.yoffset);
+			}
 		}
 		function drawMapTile(x, y) {
-			drawTile(images[map.map[y].substr(x,1)], x, y);
+			drawTile(images[status.level.map[y][x]], x, y);
 		}
 		function drawManTile() {
 			var x = status.x;
@@ -102,14 +160,14 @@
 					break;	
 			}
 
-			drawTile(images[status.facing], x, y);
+			drawTile(manImages[status.facing], x, y);
 		}
 		function draw(everything) {
-			if(view.width && view.height && imagesLoading==0) {
-				// draw map
+			if(isReady()) {				
 				if(everything) {
-					for(y=0; y<map.height; y++) {
-						for(x=0; x<map.width; x++) {
+					// TODO: clear everything
+					for(y=0; y<status.level.height; y++) {
+						for(x=0; x<status.level.width; x++) {
 							drawMapTile(x, y);
 						}
 					}
@@ -119,12 +177,11 @@
 					drawMapTile(status.nextX, status.nextY);
 				}
 
-				// draw man
 				drawManTile();
 			}				
 		}
 		
-		// resize
+		// --- resize ---
 		function resize() {
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
@@ -140,7 +197,7 @@
 		$(window).on("resize", resize);
 
 
-		// simulate
+		// --- simulate ---
 		var timer=null;
 
 		function isMoving() {
@@ -183,7 +240,7 @@
 							break;
 					}
 
-					if(map.map[newY].substr(newX,1)===" ") {
+					if(status.level.map[newY][newX]===FLOOR) {
 						status.moveStartTime = time;
 						status.nextX=newX;
 						status.nextY=newY;
@@ -248,7 +305,7 @@
 			}
 		});
 
-		// test JQuery
+		// --- test JQuery ---
 		/*
 		$("<div>")
 			.appendTo("body")
