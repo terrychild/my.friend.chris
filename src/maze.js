@@ -82,8 +82,8 @@
 			{
 				loaded: false,
 				bitmap: "m00.bmp",
-				startX: 15,
-				startY: 12
+				startX: 42,
+				startY: 42
 			}
 		];
 
