@@ -1,7 +1,7 @@
 (function($) {
 	$(function() {
 		// --- constants ---
-		var NULL=0, WALL=1, FLOOR=2;
+		var NULL=0, WALL=1, FLOOR=2, GRASS=3;
 
 		// --- settings ---
 		var tileSize = 40;
@@ -68,6 +68,7 @@
 		var images = {};
 		images[FLOOR] = loadImage("media/floor.png");
 		images[WALL] = loadImage("media/wall.png");
+		images[GRASS] = loadImage("media/grass.png");
 
 		var manImages = {
 			"0": loadImage("media/man_up.png"),
@@ -80,7 +81,7 @@
 		var levels = [
 			{
 				loaded: false,
-				bitmap: "m02.bmp",
+				bitmap: "m00.bmp",
 				startX: 15,
 				startY: 12
 			}
@@ -110,6 +111,9 @@
 							case "0000FF":
 								row.push(FLOOR);
 								break;
+							case "00FF00":
+								row.push(GRASS);
+								break;
 							default:
 								row.push(NULL);
 						}
@@ -125,7 +129,7 @@
 					status.y = status.lastY = status.nextY = level.startY;
 				}
 
-				draw();
+				draw(true);
 			}
 		});
 
@@ -240,7 +244,11 @@
 							break;
 					}
 
-					if(status.level.map[newY][newX]===FLOOR) {
+					var newTile=NULL;
+					if(newX>=0 && newX<status.level.width && newY>=0 && newY<status.level.height) {
+						newTile = status.level.map[newY][newX];
+					}
+					if(newTile===FLOOR || newTile===GRASS) {
 						status.moveStartTime = time;
 						status.nextX=newX;
 						status.nextY=newY;
