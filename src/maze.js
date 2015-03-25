@@ -81,9 +81,7 @@
 		var levels = [
 			{
 				loaded: false,
-				bitmap: "m00.bmp",
-				startX: 42,
-				startY: 42
+				bitmap: "m00.bmp"
 			}
 		];
 
@@ -108,6 +106,9 @@
 							case "808080":
 								row.push(WALL);
 								break;
+							case "8080FF":
+								level.startX=x;
+								level.startY=y;
 							case "0000FF":
 								row.push(FLOOR);
 								break;
@@ -124,6 +125,7 @@
 				level.loaded = true;
 
 				if(index==0) {
+					console.log(level.startX, level.startY);
 					status.level = level;
 					status.x = status.lastX = status.nextX = level.startX;
 					status.y = status.lastY = status.nextY = level.startY;
@@ -169,6 +171,8 @@
 		function draw(everything) {
 			if(isReady()) {				
 				if(everything) {
+					scroll(true);
+
 					// TODO: clear everything
 					for(y=0; y<status.level.height; y++) {
 						for(x=0; x<status.level.width; x++) {
@@ -184,6 +188,35 @@
 				drawManTile();
 			}				
 		}
+
+		// --- scoll ---
+		function scroll(instant) {
+			if(isReady()) {
+				var newX, newY;
+
+				// X
+				console.log(status.level.width, view.width);
+				if(status.level.width<view.width) {
+					view.xoffset = newX = Math.floor((canvas.width-(status.level.width*tileSize))/2);
+				} else {
+					newX = Math.floor((canvas.width/2)-(status.x*tileSize));
+				}
+
+				// Y
+				console.log(status.level.height, view.height);
+				if(status.level.height<view.height) {
+					view.yoffset = newY = Math.floor((canvas.height-(status.level.height*tileSize))/2);
+				} else {
+					newY = Math.floor((canvas.height/2)-(status.y*tileSize));	
+				}
+
+				// update
+				if(instant) {
+					view.xoffset = newX;
+					view.yoffset = newY;
+				}
+			}
+		}
 		
 		// --- resize ---
 		function resize() {
@@ -192,8 +225,8 @@
 
 			view.width = Math.floor(canvas.width/tileSize);
 			view.height = Math.floor(canvas.height/tileSize);
-			view.xoffset = Math.floor((canvas.width-(view.width*tileSize))/2);
-			view.yoffset = Math.floor((canvas.height-(view.height*tileSize))/2);
+			/*view.xoffset = Math.floor((canvas.width-(view.width*tileSize))/2);
+			view.yoffset = Math.floor((canvas.height-(view.height*tileSize))/2);*/
 
 			draw(true);
 		}
@@ -252,6 +285,7 @@
 						status.moveStartTime = time;
 						status.nextX=newX;
 						status.nextY=newY;
+						console.log(newX, newY);
 					}
 				}
 			}
