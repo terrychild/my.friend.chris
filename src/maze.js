@@ -7,9 +7,13 @@
 		var tileSize = 40;
 		var scrollPoint = 3;
 
+		// --- status ---
 		var view = {
 			width: 0,
 			height: 0,
+
+			xoffset: 0, 
+			yoffset: 0,
 
 			left: 0,
 			top: 0,
@@ -18,11 +22,9 @@
 			newLeft: 0,
 			newTop: 0,
 
-			xoffset: 0, 
-			yoffset: 0
+			timer: null
 		};
 
-		// --- status ---
 		var status = {
 			level: null,
 
@@ -35,6 +37,8 @@
 
 			moving: 0,
 			moveStartTime: null,
+			timer: null,
+
 			facing: 2,
 			key: -1
 		};
@@ -234,41 +238,44 @@
 				}
 
 				// animate scroll
-				if(doScroll) {
+				if(doScroll && !view.timer) {
 					view.oldLeft = view.left;
 					view.newLeft = newLeft ? newLeft : view.left;
 
 					view.oldTop = view.top;
 					view.newTop = newTop ? newTop : view.top;
 
-					requestAnimationFrame(animateScroll);
-					//draw(true);
+					view.timer = requestAnimationFrame(animateScroll);
 				}
 			}
 		}
 		function animateScroll(time) {
-			if(view.scrollStartTime) {
-				var progress = (time-status.moveStartTime)/1000;
-				if(progress>=1) {
-					view.scrollStartTime = null;
-					view.left = view.newLeft;
-					view.top = view.newTop;
-				} else {
-					view.left = scrollShim(view.oldLeft, view.newLeft, progress);
-					view.top = scrollShim(view.oldTop, view.newTop, progress);
-				}
+			if(!view.scrollStartTime) {
+				view.scrollStartTime = time;
+			}
 
-				draw(true);
-				if(progress<1) {
-					requestAnimationFrame(animateScroll);
-				}
-
+			var progress = (time-view.scrollStartTime)/1000;
+			if(progress>=1) {
+				view.scrollStartTime = null;
+				view.timer = null;
+				view.left = view.newLeft;
+				view.top = view.newTop;
 			} else {
-				view.scrollStartTime = time
+				view.left = scrollEase(view.oldLeft, view.newLeft, progress);
+				view.top = scrollEase(view.oldTop, view.newTop, progress);
+			}
+
+			draw(true);
+			if(progress<1) {
+				view.timer = requestAnimationFrame(animateScroll);
 			}
 		}
-		function scrollShim(start, end, progress) {
-			return start+((end-start)*progress);
+		function scrollEase(start, end, progress) {
+			// sinusoidal easing in and out
+			var rv = start - ((end-start)/2) * (Math.cos(Math.PI*progress) - 1);
+
+			// round down to pixel
+			return Math.floor(rv*tileSize)/40;
 		}
 		
 		// --- resize ---
@@ -289,8 +296,6 @@
 
 
 		// --- simulate ---
-		var timer=null;
-
 		function isMoving() {
 			return status.nextX!=status.x || status.nextY!=status.y;
 		}
@@ -346,9 +351,9 @@
 			}
 
 			if(isMoving()) {
-				timer = requestAnimationFrame(move);
+				status.timer = requestAnimationFrame(move);
 			} else {
-				timer = null;
+				status.timer = null;
 				status.moving = 0;
 			}
 
@@ -371,8 +376,8 @@
 					break;
 			}
 			if(status.key>=0) {
-				if(!timer) {
-					timer = requestAnimationFrame(move);
+				if(!status.timer) {
+					status.timer = requestAnimationFrame(move);
 				}
 			}
 		});
