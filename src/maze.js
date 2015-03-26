@@ -176,7 +176,7 @@
 			if(isReady()) {				
 				if(everything) {
 					context.clearRect(0, 0, canvas.width, canvas.height);
-					
+
 					for(y=0; y<status.level.height; y++) {
 						for(x=0; x<status.level.width; x++) {
 							drawMapTile(x, y);
@@ -206,11 +206,8 @@
 					newLeft = status.x-Math.floor(view.width/2);
 					if(instant) {
 						view.left = newLeft;
-						console.log("Set left:" + view.left);
 					} else if(newLeft!==view.left) {
-						//console.log("Left:"+ view.left + " New left:" + newLeft + " X:"+status.x+" Trigger:"+(view.left+scrollPoint));
 						if((status.x<view.left+scrollPoint) || (status.x>view.left+view.width-scrollPoint)) {
-							view.left = newLeft;
 							doScroll = true;
 						}
 					}
@@ -220,21 +217,24 @@
 				if(status.level.height<view.height) {
 					view.top = Math.floor((view.height-status.level.height)/2);
 				} else {
-					//newY = Math.floor((canvas.height/2)-(status.y*tileSize)-(tileSize/2));	
 					newTop = status.y-Math.floor(view.height/2);
-				}		
-
-				if(newTop!=null) {
-					//if(instant || (newY!==view.yoffset && (y<scrollPoint || y>canvas.height-scrollPoint))) {
 					if(instant) {
 						view.top = newTop;
-						console.log("Y", status.y, view.top);
-						doScroll = !instant;
+					} else if(newTop!==view.top) {
+						if((status.y<view.top+scrollPoint) || (status.y>view.top+view.height-scrollPoint)) {
+							doScroll = true;
+						}
 					}
 				}
 
 				// animate scroll
 				if(doScroll) {
+					if(newLeft) {
+						view.left = newLeft;
+					}
+					if(newTop) {
+						view.top = newTop;
+					}
 					draw(true);
 				}
 			}
