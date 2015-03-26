@@ -5,15 +5,26 @@
 
 		// --- settings ---
 		var tileSize = 40;
+		var scrollPoint = 3;
 
+		// --- status ---
 		var view = {
 			width: 0,
 			height: 0,
+
 			xoffset: 0, 
-			yoffset: 0
+			yoffset: 0,
+
+			left: 0,
+			top: 0,
+			oldLeft: 0,
+			oldTop: 0,
+			newLeft: 0,
+			newTop: 0,
+
+			timer: null
 		};
 
-		// --- status ---
 		var status = {
 			level: null,
 
@@ -26,6 +37,8 @@
 
 			moving: 0,
 			moveStartTime: null,
+			timer: null,
+
 			facing: 2,
 			key: -1
 		};
@@ -59,6 +72,7 @@
 			image.onload = function() {
 				imagesLoading--;
 				if(imagesLoading==0) {
+					scroll(true);
 					draw(true);
 				}
 			}
@@ -81,9 +95,7 @@
 		var levels = [
 			{
 				loaded: false,
-				bitmap: "m00.bmp",
-				startX: 15,
-				startY: 12
+				bitmap: "m02.bmp"
 			}
 		];
 
@@ -108,6 +120,9 @@
 							case "808080":
 								row.push(WALL);
 								break;
+							case "8080FF":
+								level.startX=x;
+								level.startY=y;
 							case "0000FF":
 								row.push(FLOOR);
 								break;
@@ -129,6 +144,7 @@
 					status.y = status.lastY = status.nextY = level.startY;
 				}
 
+				scroll(true);
 				draw(true);
 			}
 		});
@@ -140,7 +156,7 @@
 
 		function drawTile(image, x, y) {
 			if(image) {
-				context.drawImage(image, x*tileSize+view.xoffset, y*tileSize+view.yoffset);
+				context.drawImage(image, (x-view.left)*tileSize+view.xoffset, (y-view.top)*tileSize+view.yoffset);
 			}
 		}
 		function drawMapTile(x, y) {
@@ -149,19 +165,21 @@
 		function drawManTile() {
 			var x = status.x;
 			var y = status.y;
-			switch(status.facing) {
-				case 0:
-					y -= status.moving;
-					break;
-				case 1:
-					x += status.moving;
-					break;
-				case 2:
-					y += status.moving;
-					break;
-				case 3:
-					x -= status.moving;
-					break;	
+			if(isMoving()) {
+				switch(status.facing) {
+					case 0:
+						y -= status.moving;
+						break;
+					case 1:
+						x += status.moving;
+						break;
+					case 2:
+						y += status.moving;
+						break;
+					case 3:
+						x -= status.moving;
+						break;	
+				}
 			}
 
 			drawTile(manImages[status.facing], x, y);
@@ -169,7 +187,8 @@
 		function draw(everything) {
 			if(isReady()) {				
 				if(everything) {
-					// TODO: clear everything
+					context.clearRect(0, 0, canvas.width, canvas.height);
+
 					for(y=0; y<status.level.height; y++) {
 						for(x=0; x<status.level.width; x++) {
 							drawMapTile(x, y);
@@ -184,6 +203,80 @@
 				drawManTile();
 			}				
 		}
+
+		// --- scoll ---
+		function scroll(instant) {
+			if(isReady()) {
+				var newLeft, newTop, doScroll=false;
+
+				// X
+				if(status.level.width<=view.width) {
+					view.left = Math.floor((status.level.width-view.width)/2);
+				} else {
+					newLeft = status.x-Math.floor(view.width/2);
+					if(instant) {
+						view.left = newLeft;
+					} else if(newLeft!==view.left) {
+						if((status.x<view.left+scrollPoint) || (status.x>view.left+view.width-scrollPoint)) {
+							doScroll = true;
+						}
+					}
+				}
+
+				// Y
+				if(status.level.height<=view.height) {
+					view.top = Math.floor((status.level.height-view.height)/2);
+				} else {
+					newTop = status.y-Math.floor(view.height/2);
+					if(instant) {
+						view.top = newTop;
+					} else if(newTop!==view.top) {
+						if((status.y<view.top+scrollPoint) || (status.y>view.top+view.height-scrollPoint)) {
+							doScroll = true;
+						}
+					}
+				}
+
+				// animate scroll
+				if(doScroll && !view.timer) {
+					view.oldLeft = view.left;
+					view.newLeft = newLeft ? newLeft : view.left;
+
+					view.oldTop = view.top;
+					view.newTop = newTop ? newTop : view.top;
+
+					view.timer = requestAnimationFrame(animateScroll);
+				}
+			}
+		}
+		function animateScroll(time) {
+			if(!view.scrollStartTime) {
+				view.scrollStartTime = time;
+			}
+
+			var progress = (time-view.scrollStartTime)/1000;
+			if(progress>=1) {
+				view.scrollStartTime = null;
+				view.timer = null;
+				view.left = view.newLeft;
+				view.top = view.newTop;
+			} else {
+				view.left = scrollEase(view.oldLeft, view.newLeft, progress);
+				view.top = scrollEase(view.oldTop, view.newTop, progress);
+			}
+
+			draw(true);
+			if(progress<1) {
+				view.timer = requestAnimationFrame(animateScroll);
+			}
+		}
+		function scrollEase(start, end, progress) {
+			// sinusoidal easing in and out
+			var rv = start - ((end-start)/2) * (Math.cos(Math.PI*progress) - 1);
+
+			// round down to pixel
+			return Math.floor(rv*tileSize)/40;
+		}
 		
 		// --- resize ---
 		function resize() {
@@ -195,6 +288,7 @@
 			view.xoffset = Math.floor((canvas.width-(view.width*tileSize))/2);
 			view.yoffset = Math.floor((canvas.height-(view.height*tileSize))/2);
 
+			scroll(true);					
 			draw(true);
 		}
 		resize();
@@ -202,8 +296,6 @@
 
 
 		// --- simulate ---
-		var timer=null;
-
 		function isMoving() {
 			return status.nextX!=status.x || status.nextY!=status.y;
 		}
@@ -217,8 +309,10 @@
 					status.lastY = status.y;
 					status.x = status.nextX;
 					status.y = status.nextY;
-
+					
 					status.moving = status.moving - Math.floor(status.moving);
+
+					scroll(false);
 				}
 			}
 
@@ -257,9 +351,9 @@
 			}
 
 			if(isMoving()) {
-				timer = requestAnimationFrame(move);
+				status.timer = requestAnimationFrame(move);
 			} else {
-				timer = null;
+				status.timer = null;
 				status.moving = 0;
 			}
 
@@ -282,8 +376,8 @@
 					break;
 			}
 			if(status.key>=0) {
-				if(!timer) {
-					timer = requestAnimationFrame(move);
+				if(!status.timer) {
+					status.timer = requestAnimationFrame(move);
 				}
 			}
 		});
