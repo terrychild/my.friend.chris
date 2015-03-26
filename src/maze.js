@@ -5,10 +5,13 @@
 
 		// --- settings ---
 		var tileSize = 40;
+		var scrollPoint = 3;
 
 		var view = {
 			width: 0,
 			height: 0,
+			left: 0,
+			top: 0,
 			xoffset: 0, 
 			yoffset: 0
 		};
@@ -59,6 +62,7 @@
 			image.onload = function() {
 				imagesLoading--;
 				if(imagesLoading==0) {
+					scroll(true);
 					draw(true);
 				}
 			}
@@ -125,12 +129,12 @@
 				level.loaded = true;
 
 				if(index==0) {
-					console.log(level.startX, level.startY);
 					status.level = level;
 					status.x = status.lastX = status.nextX = level.startX;
 					status.y = status.lastY = status.nextY = level.startY;
 				}
 
+				scroll(true);
 				draw(true);
 			}
 		});
@@ -142,7 +146,7 @@
 
 		function drawTile(image, x, y) {
 			if(image) {
-				context.drawImage(image, x*tileSize+view.xoffset, y*tileSize+view.yoffset);
+				context.drawImage(image, (x-view.left)*tileSize+view.xoffset, (y-view.top)*tileSize+view.yoffset);
 			}
 		}
 		function drawMapTile(x, y) {
@@ -171,8 +175,6 @@
 		function draw(everything) {
 			if(isReady()) {				
 				if(everything) {
-					scroll(true);
-
 					// TODO: clear everything
 					for(y=0; y<status.level.height; y++) {
 						for(x=0; x<status.level.width; x++) {
@@ -192,28 +194,47 @@
 		// --- scoll ---
 		function scroll(instant) {
 			if(isReady()) {
-				var newX, newY;
+				var newLeft=null, 
+					newTop=null, 
+					doScroll=false;
 
 				// X
-				console.log(status.level.width, view.width);
-				if(status.level.width<view.width) {
-					view.xoffset = newX = Math.floor((canvas.width-(status.level.width*tileSize))/2);
+				if(status.level.width<=view.width) {
+					view.left = Math.floor((view.width-status.level.width)/2);
 				} else {
-					newX = Math.floor((canvas.width/2)-(status.x*tileSize));
+					newLeft = status.x-Math.floor(view.width/2);
+					if(instant) {
+						view.left = newLeft;
+						console.log("Set left:" + view.left);
+					} else if(newLeft!==view.left) {
+						//console.log("Left:"+ view.left + " New left:" + newLeft + " X:"+status.x+" Trigger:"+(view.left+scrollPoint));
+						if((status.x<view.left+scrollPoint) || (status.x>view.left+view.width-scrollPoint)) {
+							view.left = newLeft;
+							doScroll = true;
+						}
+					}
 				}
 
 				// Y
-				console.log(status.level.height, view.height);
 				if(status.level.height<view.height) {
-					view.yoffset = newY = Math.floor((canvas.height-(status.level.height*tileSize))/2);
+					view.top = Math.floor((view.height-status.level.height)/2);
 				} else {
-					newY = Math.floor((canvas.height/2)-(status.y*tileSize));	
+					//newY = Math.floor((canvas.height/2)-(status.y*tileSize)-(tileSize/2));	
+					newTop = status.y-Math.floor(view.height/2);
+				}		
+
+				if(newTop!=null) {
+					//if(instant || (newY!==view.yoffset && (y<scrollPoint || y>canvas.height-scrollPoint))) {
+					if(instant) {
+						view.top = newTop;
+						console.log("Y", status.y, view.top);
+						doScroll = !instant;
+					}
 				}
 
-				// update
-				if(instant) {
-					view.xoffset = newX;
-					view.yoffset = newY;
+				// animate scroll
+				if(doScroll) {
+					draw(true);
 				}
 			}
 		}
@@ -225,9 +246,10 @@
 
 			view.width = Math.floor(canvas.width/tileSize);
 			view.height = Math.floor(canvas.height/tileSize);
-			/*view.xoffset = Math.floor((canvas.width-(view.width*tileSize))/2);
-			view.yoffset = Math.floor((canvas.height-(view.height*tileSize))/2);*/
+			view.xoffset = Math.floor((canvas.width-(view.width*tileSize))/2);
+			view.yoffset = Math.floor((canvas.height-(view.height*tileSize))/2);
 
+			scroll(true);					
 			draw(true);
 		}
 		resize();
@@ -250,6 +272,8 @@
 					status.lastY = status.y;
 					status.x = status.nextX;
 					status.y = status.nextY;
+
+					scroll(false);
 
 					status.moving = status.moving - Math.floor(status.moving);
 				}
@@ -285,7 +309,6 @@
 						status.moveStartTime = time;
 						status.nextX=newX;
 						status.nextY=newY;
-						console.log(newX, newY);
 					}
 				}
 			}
