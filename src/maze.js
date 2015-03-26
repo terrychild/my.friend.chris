@@ -175,7 +175,8 @@
 		function draw(everything) {
 			if(isReady()) {				
 				if(everything) {
-					// TODO: clear everything
+					context.clearRect(0, 0, canvas.width, canvas.height);
+					
 					for(y=0; y<status.level.height; y++) {
 						for(x=0; x<status.level.width; x++) {
 							drawMapTile(x, y);
