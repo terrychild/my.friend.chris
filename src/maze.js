@@ -85,7 +85,7 @@
 		var levels = [
 			{
 				loaded: false,
-				bitmap: "m00.bmp"
+				bitmap: "m01.bmp"
 			}
 		];
 
@@ -197,13 +197,11 @@
 		// --- scoll ---
 		function scroll(instant) {
 			if(isReady()) {
-				var newLeft=null, 
-					newTop=null, 
-					doScroll=false;
+				var newLeft, newTop, doScroll=false;
 
 				// X
 				if(status.level.width<=view.width) {
-					view.left = Math.floor((view.width-status.level.width)/2);
+					view.left = Math.floor((status.level.width-view.width)/2);
 				} else {
 					newLeft = status.x-Math.floor(view.width/2);
 					if(instant) {
@@ -216,8 +214,8 @@
 				}
 
 				// Y
-				if(status.level.height<view.height) {
-					view.top = Math.floor((view.height-status.level.height)/2);
+				if(status.level.height<=view.height) {
+					view.top = Math.floor((status.level.height-view.height)/2);
 				} else {
 					newTop = status.y-Math.floor(view.height/2);
 					if(instant) {
