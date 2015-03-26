@@ -155,19 +155,21 @@
 		function drawManTile() {
 			var x = status.x;
 			var y = status.y;
-			switch(status.facing) {
-				case 0:
-					y -= status.moving;
-					break;
-				case 1:
-					x += status.moving;
-					break;
-				case 2:
-					y += status.moving;
-					break;
-				case 3:
-					x -= status.moving;
-					break;	
+			if(isMoving()) {
+				switch(status.facing) {
+					case 0:
+						y -= status.moving;
+						break;
+					case 1:
+						x += status.moving;
+						break;
+					case 2:
+						y += status.moving;
+						break;
+					case 3:
+						x -= status.moving;
+						break;	
+				}
 			}
 
 			drawTile(manImages[status.facing], x, y);
@@ -273,10 +275,10 @@
 					status.lastY = status.y;
 					status.x = status.nextX;
 					status.y = status.nextY;
+					
+					status.moving = status.moving - Math.floor(status.moving);
 
 					scroll(false);
-
-					status.moving = status.moving - Math.floor(status.moving);
 				}
 			}
 
