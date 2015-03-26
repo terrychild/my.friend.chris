@@ -10,8 +10,14 @@
 		var view = {
 			width: 0,
 			height: 0,
+
 			left: 0,
 			top: 0,
+			oldLeft: 0,
+			oldTop: 0,
+			newLeft: 0,
+			newTop: 0,
+
 			xoffset: 0, 
 			yoffset: 0
 		};
@@ -85,7 +91,7 @@
 		var levels = [
 			{
 				loaded: false,
-				bitmap: "m01.bmp"
+				bitmap: "m02.bmp"
 			}
 		];
 
@@ -229,15 +235,40 @@
 
 				// animate scroll
 				if(doScroll) {
-					if(newLeft) {
-						view.left = newLeft;
-					}
-					if(newTop) {
-						view.top = newTop;
-					}
-					draw(true);
+					view.oldLeft = view.left;
+					view.newLeft = newLeft ? newLeft : view.left;
+
+					view.oldTop = view.top;
+					view.newTop = newTop ? newTop : view.top;
+
+					requestAnimationFrame(animateScroll);
+					//draw(true);
 				}
 			}
+		}
+		function animateScroll(time) {
+			if(view.scrollStartTime) {
+				var progress = (time-status.moveStartTime)/1000;
+				if(progress>=1) {
+					view.scrollStartTime = null;
+					view.left = view.newLeft;
+					view.top = view.newTop;
+				} else {
+					view.left = scrollShim(view.oldLeft, view.newLeft, progress);
+					view.top = scrollShim(view.oldTop, view.newTop, progress);
+				}
+
+				draw(true);
+				if(progress<1) {
+					requestAnimationFrame(animateScroll);
+				}
+
+			} else {
+				view.scrollStartTime = time
+			}
+		}
+		function scrollShim(start, end, progress) {
+			return start+((end-start)*progress);
 		}
 		
 		// --- resize ---
